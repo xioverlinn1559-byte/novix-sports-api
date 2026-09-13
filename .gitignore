@@ -1,0 +1,4 @@
+*.metadata.json
+.gemini/
+__pycache__/
+*.pyc
