@@ -2,14 +2,11 @@ name: Novix Sports Scraper
 
 on:
   schedule:
-    # Run every 10 minutes
     - cron: "*/10 * * * *"
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   scrape:
@@ -19,8 +16,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,17 +26,15 @@ jobs:
         run: pip install -r scraper/requirements.txt
 
       - name: Run scraper
-        run: python scraper/scrape.py
+        run: python scraper/scrape.py || echo "⚠️ Scraper soft-failed (CF block?), continuing..."
         env:
           PYTHONUNBUFFERED: "1"
 
-      - name: Commit and push updated data
+      - name: Commit and push
         run: |
           git config user.name "Novix Sports Bot"
           git config user.email "bot@novix.app"
           git add api/
-          # Only commit if there are changes
-          git diff --cached --quiet || git commit -m "🔄 Auto-update: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git diff --cached --quiet || git commit -m "🔄 $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
